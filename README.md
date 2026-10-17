@@ -52,13 +52,15 @@ retrigger this event.
 
 ### Where does Noctalia/Umbriel come from?
 
-`noctalia` comes from the official Fedora 44 repositories. `umbriel-nightly`,
-`noctalia-greeter` and `xdg-desktop-portal-umbriel-nightly` come from the
-[**Terra**](https://terrapkg.com/) repository, the Fedora source documented
-upstream (and already used by Bazzite for other packages). Bazzite ships Terra
-but leaves it disabled, and Terra's main server (`repos.fyralabs.com`) is often
-unreachable, so the build pulls those packages from Terra's CDN mirror
-(`repos-cf.fyralabs.com`) without enabling the repo persistently.
+`noctalia` comes from the official Fedora 44 repositories. `umbriel-git` comes
+from the community
+[`c0mpile/builds`](https://copr.fedorainfracloud.org/coprs/c0mpile/builds/)
+COPR, because Terra's `umbriel-nightly` is currently frozen at 2026-10-03: that
+build's IPC rejects the whole event subscription with
+`unknown subscription event: outputs` — an event Noctalia 5.3.0 subscribes to —
+so Noctalia loses the event stream and shows no windows. `noctalia-greeter` and
+`xdg-desktop-portal-umbriel-nightly` come from Terra via its CDN mirror
+(`repos-cf.fyralabs.com`), since Terra's main server is often unreachable.
 
 ### Why does the build replace Xwayland?
 

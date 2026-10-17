@@ -14,6 +14,17 @@ IMAGE_REF="ostree-image-signed:docker://ghcr.io/irunatbullets/${FULL_NAME}"
 
 # bluetui comes from the project's own COPR.
 dnf5 -y copr enable irunatbullets/spacium-extras
+# Umbriel comes from the c0mpile COPR. Terra's umbriel-nightly is frozen at
+# 2026-10-03 and that build's IPC rejects the whole event subscription with
+# "unknown subscription event: outputs" -- an event Noctalia 5.3.0 subscribes to.
+# Without that event stream Noctalia shows no windows at all.
+dnf5 -y copr enable c0mpile/builds
+
+# The packaged Umbriel depends on xwayland-satellite, which in turn requires
+# Fedora's xorg-x11-server-Xwayland. Bazzite ships Terra's build of Xwayland,
+# which conflicts with Fedora's, so replace it with Fedora's (same upstream
+# version) before pulling Umbriel in.
+dnf5 -y install --allowerasing xorg-x11-server-Xwayland
 
 dnf5 -y install \
     acl \
@@ -24,24 +35,19 @@ dnf5 -y install \
     greetd \
     noctalia \
     tmux \
+    umbriel-git \
     wl-clipboard
 
 dnf5 -y copr disable irunatbullets/spacium-extras
+dnf5 -y copr disable c0mpile/builds
 
-# The packaged Umbriel depends on xwayland-satellite, which in turn requires
-# Fedora's xorg-x11-server-Xwayland. Bazzite ships Terra's build of Xwayland,
-# which conflicts with Fedora's, so replace it with Fedora's (same upstream
-# version).
-dnf5 -y install --allowerasing xorg-x11-server-Xwayland
-
-# Umbriel, the Noctalia Greeter and the Umbriel portal come from Terra, the
-# Fedora source documented upstream (and already used by Bazzite for other
-# packages). Bazzite ships Terra but leaves it disabled, and Terra's main server
+# The Noctalia Greeter and the Umbriel portal come from Terra, the Fedora source
+# documented upstream (and already used by Bazzite for other packages). Bazzite
+# ships Terra but leaves it disabled, and Terra's main server
 # (repos.fyralabs.com) is often unreachable, so use its CDN mirror directly.
 dnf5 -y install \
     --repofrompath 'terra-cf,https://repos-cf.fyralabs.com/terra$releasever' \
     --nogpgcheck \
-    umbriel-nightly \
     noctalia-greeter \
     xdg-desktop-portal-umbriel-nightly
 
