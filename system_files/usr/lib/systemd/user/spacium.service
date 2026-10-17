@@ -1,5 +1,5 @@
 [Unit]
-Description=Various vanilla configurations for Spacium
+Description=Various vanilla configurations for the Spacium image
 
 [Service]
 Type=oneshot

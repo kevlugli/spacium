@@ -9,22 +9,6 @@ FROM ${BASE_IMAGE} AS base
 COPY system_files/etc/ /etc/
 COPY system_files/usr/ /usr/
 
-# Import upstream DMS Niri defaults into skel.
-# This intentionally fails if DMS changes its config layout.
-RUN git clone --depth=1 https://github.com/AvengeMedia/DankMaterialShell.git /tmp/dms && \
-    test -f /tmp/dms/core/internal/config/embedded/niri.kdl && \
-    install -d /etc/skel/.config/niri/dms && \
-    git -C /tmp/dms rev-parse HEAD > /etc/skel/.config/niri/.dms-config-commit && \
-    install -Dm644 \
-        /tmp/dms/core/internal/config/embedded/niri.kdl \
-        /etc/skel/.config/niri/config.kdl && \
-    for f in /tmp/dms/core/internal/config/embedded/niri-*.kdl; do \
-        name="$(basename "$f")"; \
-        name="${name#niri-}"; \
-        install -Dm644 "$f" "/etc/skel/.config/niri/dms/$name"; \
-    done && \
-    rm -rf /tmp/dms
-
 ### MODIFICATIONS
 ## make modifications desired in your image and install packages by modifying the build.sh script
 ## the following RUN directive does all the things required to run "build.sh" as recommended.

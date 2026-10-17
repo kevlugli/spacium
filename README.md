@@ -12,12 +12,12 @@
 
 This custom **Bazzite** image is based on `bazzite-gnome` with variants for the Nvidia open driver as well as Nouveau.
 
-It includes **Dank Material Shell** and **niri**
-along with all of the recommended extras for Dank Linux.
+It swaps the GNOME session for **Noctalia** (desktop shell) and **Umbriel**
+(Wayland compositor), using the **Noctalia Greeter** for the login screen.
 
-My goal with this image is to offer a vanilla DMS/niri experience with gaming
-capabilities (via Bazzite). I have added **ghostty** as the default termianl
-along with tools to allow developers to create their own DMS plugins.
+My goal with this image is to offer a vanilla Noctalia/Umbriel experience with
+gaming capabilities (via Bazzite). I have added **ghostty** as the default
+terminal.
 
 Feel free to suggest additional software - or just fork this repo and do
 whatever you like.
@@ -40,59 +40,53 @@ sudo bootc switch ghcr.io/irunatbullets/spacium-nouveau
 ```
 
 **Important Note:** After switching to this image the login will backup any
-existing niri configutation and replace it with standard dms niri configs.
-Updates will not retrigger this event.
+existing Umbriel configuration (`~/.config/umbriel`) and replace it with the
+standard Spacium Umbriel config (which autostarts Noctalia). Updates will not
+retrigger this event.
 
 ## What my selection of additional applications achieve
 
-- **ghostty** - nothing, I just switched to it when I started using dms.
+- **ghostty** - the default terminal, bound to `Mod+Return` in Umbriel.
 - **bluetui** - an application for configuring multiple Bluetooth receivers.
 
 ## Known issues and workarounds
 
-### How do I change the dms greeter's background?!
+### Where does Noctalia/Umbriel come from?
 
-To enable background image syncing with the dms greeter, run the
-following from your terminal and follow the steps:
+On Fedora 44 (the Bazzite base) only `noctalia` is in the official
+repositories. `umbriel-git`, `noctalia-greeter-git` and
+`xdg-desktop-portal-umbriel-git` come from the community
+[`c0mpile/builds`](https://copr.fedorainfracloud.org/coprs/c0mpile/builds/)
+COPR, so they track upstream `main` rather than tagged releases. If that COPR
+goes away, the alternatives are the Terra repository
+(`umbriel-nightly`, `noctalia-greeter`) or building Umbriel from source.
 
-```
-dms greeter sync
-```
-I would like to automate this in future but I'm simply not smart or patient
-enough to do it at the moment.
+### Screen sharing
 
-### Matugen isn't themeing my flatpak apps!
+Screen capture and sharing go through **xdg-desktop-portal-umbriel**, which is
+installed and configured automatically. If an application can't share the
+screen, make sure it is using the portal.
 
-Matugen can theme flatpaks by running the following (restart any running apps):
+### The Noctalia Greeter doesn't match my Noctalia wallpaper
 
-```
-sudo flatpak override \
---filesystem=xdg-config/gtk-3.0:rw \
---filesystem=xdg-config/gtkrc-2.0:rw \
---filesystem=xdg-config/gtk-4.0:rw \
---filesystem=xdg-config/gtkrc:rw
-```
-
-### The capslock indicator widget doesn't work!
-
-You have to add yourself to the `input` group like this, and then reboot.
-
-```
-ujust add-user-to-input-group
-```
+The greeter can sync its appearance with your Noctalia session. See the
+[greeter sync documentation](https://docs.noctalia.dev/greeter/sync/) for the
+polkit-authorized setup steps.
 
 ## Credits:
 
 - https://bazzite.gg/
-- https://danklinux.com/
-- https://github.com/niri-wm/niri
-- https://github.com/bazzirco/bazzirco (for the dms-greeter workaround)
+- https://noctalia.dev/
+- https://docs.noctalia.dev/
+- https://github.com/noctalia-dev/noctalia
+- https://github.com/noctalia-dev/umbriel
+- https://github.com/noctalia-dev/noctalia-greeter
 - https://tsuburaya-prod.com/ (for Ultraman, the inspiration behind the name of this image)
 - https://zone108.main.jp/s/jp-005gontakana.php<br>FZゴンタかな is licensed under the [SIL Open Font License, Version 1.1](https://github.com/irunatbullets/spacium/blob/5ce3fb4974ead6809fc2b79f841c56f48572e577/assets/licenses/FZ%E3%82%B3%E3%82%99%E3%83%B3%E3%82%BF%E3%81%8B%E3%81%AA-OFL-1.1.md).
 
 ## Legal Notice
 
-This project is NOT affiliated with Bazzite, DankLinux, Niri or Tsuburaya.
+This project is NOT affiliated with Bazzite, Noctalia, Umbriel or Tsuburaya.
 
 The software is developed independently and provided as-is, without warranties of any kind. Use at your own risk.
 

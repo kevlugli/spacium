@@ -8,20 +8,19 @@ STAMP="$HOME/.local/state/spacium.done"
 mkdir -p "$(dirname "$STAMP")"
 
 # ==============================================================================
-# Replace existing Niri config with image defaults
+# Replace existing Umbriel config with image defaults
 # ==============================================================================
 
-NIRI_DIR="$HOME/.config/niri"
+UMBRIEL_DIR="$HOME/.config/umbriel"
 
-if [[ -d "$NIRI_DIR" ]]; then
-    mv "$NIRI_DIR" \
-       "$HOME/.config/niri.pre-spacium-backup.$(date +%Y%m%d-%H%M%S)"
+if [[ -d "$UMBRIEL_DIR" ]]; then
+    mv "$UMBRIEL_DIR" \
+       "$HOME/.config/umbriel.pre-spacium-backup.$(date +%Y%m%d-%H%M%S)"
 fi
 
 mkdir -p "$HOME/.config"
 
-cp -r /etc/skel/.config/niri \
+cp -r /etc/skel/.config/umbriel \
       "$HOME/.config/"
 
 touch "$STAMP"
-
