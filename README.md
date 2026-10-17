@@ -16,8 +16,7 @@ It swaps the GNOME session for **Noctalia** (desktop shell) and **Umbriel**
 (Wayland compositor), using the **Noctalia Greeter** for the login screen.
 
 My goal with this image is to offer a vanilla Noctalia/Umbriel experience with
-gaming capabilities (via Bazzite). I have added **ghostty** as the default
-terminal.
+gaming capabilities (via Bazzite).
 
 Feel free to suggest additional software - or just fork this repo and do
 whatever you like.
@@ -46,20 +45,29 @@ retrigger this event.
 
 ## What my selection of additional applications achieve
 
-- **ghostty** - the default terminal, bound to `Mod+Return` in Umbriel.
+- **gnome-terminal** - the default terminal, opened with `Mod+Return` in Umbriel.
 - **bluetui** - an application for configuring multiple Bluetooth receivers.
 
 ## Known issues and workarounds
 
 ### Where does Noctalia/Umbriel come from?
 
-On Fedora 44 (the Bazzite base) only `noctalia` is in the official
-repositories. `umbriel-git`, `noctalia-greeter-git` and
-`xdg-desktop-portal-umbriel-git` come from the community
-[`c0mpile/builds`](https://copr.fedorainfracloud.org/coprs/c0mpile/builds/)
-COPR, so they track upstream `main` rather than tagged releases. If that COPR
-goes away, the alternatives are the Terra repository
-(`umbriel-nightly`, `noctalia-greeter`) or building Umbriel from source.
+`noctalia` comes from the official Fedora 44 repositories. `umbriel-nightly`,
+`noctalia-greeter` and `xdg-desktop-portal-umbriel-nightly` come from the
+[**Terra**](https://terrapkg.com/) repository, the Fedora source documented
+upstream (and already used by Bazzite for other packages). Bazzite ships Terra
+but leaves it disabled, and Terra's main server (`repos.fyralabs.com`) is often
+unreachable, so the build pulls those packages from Terra's CDN mirror
+(`repos-cf.fyralabs.com`) without enabling the repo persistently.
+
+### Why does the build replace Xwayland?
+
+The packaged Umbriel depends on `xwayland-satellite`, which requires Fedora's
+`xorg-x11-server-Xwayland`. Bazzite ships Terra's build of Xwayland, which
+conflicts with Fedora's, so the build swaps Terra's Xwayland for Fedora's (the
+same upstream version) using `dnf --allowerasing`. As a result
+`xwayland-satellite` is installed even though upstream Umbriel now uses
+wlroots' native Xwayland.
 
 ### Screen sharing
 

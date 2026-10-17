@@ -21,4 +21,3 @@ RUN --mount=type=bind,from=buildctx,source=/ctx,target=/ctx \
 ### LINTING
 ## Verify final image and contents are correct.
 RUN bootc container lint
-
