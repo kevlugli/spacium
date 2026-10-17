@@ -14,16 +14,18 @@ IMAGE_REF="ostree-image-signed:docker://ghcr.io/irunatbullets/${FULL_NAME}"
 
 # bluetui comes from the project's own COPR.
 dnf5 -y copr enable irunatbullets/spacium-extras
-# Umbriel comes from the c0mpile COPR. Terra's umbriel-nightly is frozen at
-# 2026-10-03 and that build's IPC rejects the whole event subscription with
-# "unknown subscription event: outputs" -- an event Noctalia 5.3.0 subscribes to.
-# Without that event stream Noctalia shows no windows at all.
+# Umbriel, the Noctalia Greeter and the Umbriel portal come from the c0mpile
+# COPR. Terra's umbriel-nightly is frozen at 2026-10-03 and that build's IPC
+# rejects the whole event subscription with "unknown subscription event: outputs"
+# (an event Noctalia 5.3.0 subscribes to), so Noctalia would lose the event
+# stream and show no windows. The packages also self-conflict across sources
+# (xdg-desktop-portal-umbriel), so keep the whole family from a single COPR.
 dnf5 -y copr enable c0mpile/builds
 
-# The packaged Umbriel depends on xwayland-satellite, which in turn requires
-# Fedora's xorg-x11-server-Xwayland. Bazzite ships Terra's build of Xwayland,
-# which conflicts with Fedora's, so replace it with Fedora's (same upstream
-# version) before pulling Umbriel in.
+# Umbriel depends on xwayland-satellite, which in turn requires Fedora's
+# xorg-x11-server-Xwayland. Bazzite ships Terra's build of Xwayland, which
+# conflicts with Fedora's, so replace it with Fedora's (same upstream version)
+# before pulling Umbriel in.
 dnf5 -y install --allowerasing xorg-x11-server-Xwayland
 
 dnf5 -y install \
@@ -34,22 +36,14 @@ dnf5 -y install \
     gnome-terminal \
     greetd \
     noctalia \
+    noctalia-greeter-git \
     tmux \
     umbriel-git \
-    wl-clipboard
+    wl-clipboard \
+    xdg-desktop-portal-umbriel-git
 
 dnf5 -y copr disable irunatbullets/spacium-extras
 dnf5 -y copr disable c0mpile/builds
-
-# The Noctalia Greeter and the Umbriel portal come from Terra, the Fedora source
-# documented upstream (and already used by Bazzite for other packages). Bazzite
-# ships Terra but leaves it disabled, and Terra's main server
-# (repos.fyralabs.com) is often unreachable, so use its CDN mirror directly.
-dnf5 -y install \
-    --repofrompath 'terra-cf,https://repos-cf.fyralabs.com/terra$releasever' \
-    --nogpgcheck \
-    noctalia-greeter \
-    xdg-desktop-portal-umbriel-nightly
 
 systemctl enable podman.socket
 
