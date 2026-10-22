@@ -75,6 +75,7 @@ RUN sed -i \
       -e '/\[\[ \$EUID -ne 0 \]\] || fedora_die/d' \
       -e 's/sudo dnf/dnf/g' \
       -e 's/sudo -v/true/g' \
+      -e 's/core session welcome portal integration-dms integration-noctalia integration-pearl/core session portal integration-dms/' \
       /src/scripts/fedora-install.sh
 
 RUN cd /src && AQUEOUS_FEDORA_OUTPUT=/aqueous-build bash scripts/fedora-install.sh --build-only -y && \

@@ -52,10 +52,10 @@ retrigger this event.
   COPR. Terra's `umbriel-nightly` is frozen at 2026-10-03 and its IPC cannot
   talk to the current DMS event stream.
 - **Aqueous** is not packaged for Fedora, so it is compiled from source in a
-  builder stage of the `Containerfile` and installed from a local RPM. The full
-  desktop components are included (Welcome, session, portal and the
-  DMS/Noctalia/Pearl integrations), so **Aqueous Welcome asks which shell to
-  use on first login — pick DMS**. `Super+Return` opens `foot` under Aqueous.
+  builder stage of the `Containerfile` and installed from a local RPM. Welcome
+  is not staged: the Aqueous session preselects **DMS**
+  (`/etc/xdg/aqueous/session.toml`), so it starts directly without Shelly.
+  `Super+Return` opens `foot` under Aqueous.
 
 ### Why does the build replace Xwayland?
 
