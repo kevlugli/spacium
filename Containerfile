@@ -74,7 +74,7 @@ RUN dnf -y install \
 RUN su builder -c "git clone --depth=1 --branch '${AQUEOUS_REF}' https://github.com/Seafoam-Labs/Aqueous.git /home/builder/Aqueous"
 
 RUN su builder -c 'cd /home/builder/Aqueous && bash scripts/fedora-install.sh --build-only -y' && \
-    cp /home/builder/.cache/aqueous/fedora/*/RPMS/*/*.rpm /aqueous.rpm
+    find /home/builder/.cache/aqueous/fedora -name '*.rpm' -exec cp -v {} /aqueous.rpm \;
 
 FROM ${BASE_IMAGE} AS base
 
