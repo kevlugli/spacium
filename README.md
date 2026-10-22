@@ -10,7 +10,7 @@
   <a href="https://github.com/irunatbullets/spacium/actions/workflows/update-image.yml"><img src="https://github.com/irunatbullets/spacium/actions/workflows/update-image.yml/badge.svg" alt="Update image"></a> <a href="https://github.com/irunatbullets/spacium"><img src="https://img.shields.io/github/last-commit/irunatbullets/spacium" alt="Last Commit"></a>
 </p>
 
-This custom **Bazzite** image is based on `bazzite-gnome` with variants for the Nvidia open driver as well as Nouveau.
+This custom **Bazzite** image is based on `bazzite-gnome`.
 
 It swaps the GNOME session for **DMS (Dux Shell)** as the desktop shell, with
 two Wayland compositors available: **Umbriel** and **Aqueous**. The login screen
@@ -22,21 +22,11 @@ My goal with this image is to offer a DMS-based desktop with gaming capabilities
 Feel free to suggest additional software - or just fork this repo and do
 whatever you like.
 
-To switch, run one of the following commands from a terminal in any Universal
-Blue or Fedora Atomic based install.
-
-Choose from the following based on your gpu needs (amd, nvidia, or legacy nvidia):
+To switch, run the following command from a terminal in any Universal Blue or
+Fedora Atomic based install:
 
 ```
 sudo bootc switch ghcr.io/irunatbullets/spacium
-```
-
-```
-sudo bootc switch ghcr.io/irunatbullets/spacium-nvidia
-```
-
-```
-sudo bootc switch ghcr.io/irunatbullets/spacium-nouveau
 ```
 
 **Important Note:** After switching to this image the login will backup any

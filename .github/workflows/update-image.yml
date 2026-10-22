@@ -55,8 +55,6 @@ jobs:
     outputs:
       changed: ${{ steps.check.outputs.changed }}
       standard: ${{ steps.check.outputs.standard }}
-      nvidia: ${{ steps.check.outputs.nvidia }}
-      nouveau: ${{ steps.check.outputs.nouveau }}
 
     steps:
       - name: Checkout
@@ -73,24 +71,16 @@ jobs:
           mkdir -p .github
 
           STANDARD=$(skopeo inspect docker://ghcr.io/ublue-os/bazzite-gnome:stable | jq -r .Digest)
-          NVIDIA=$(skopeo inspect docker://ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable | jq -r .Digest)
-          NOUVEAU=$(skopeo inspect docker://ghcr.io/ublue-os/bazzite-gnome-nvidia:stable | jq -r .Digest)
 
           OLD_STANDARD=$(grep '^standard=' .github/bazzite-digests | cut -d= -f2)
-          OLD_NVIDIA=$(grep '^nvidia=' .github/bazzite-digests | cut -d= -f2)
-          OLD_NOUVEAU=$(grep '^nouveau=' .github/bazzite-digests | cut -d= -f2)
 
-          if [ "$STANDARD" != "$OLD_STANDARD" ] || \
-             [ "$NVIDIA" != "$OLD_NVIDIA" ] || \
-             [ "$NOUVEAU" != "$OLD_NOUVEAU" ]; then
+          if [ "$STANDARD" != "$OLD_STANDARD" ]; then
               echo "changed=true" >> "$GITHUB_OUTPUT"
           else
               echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
           echo "standard=$STANDARD" >> "$GITHUB_OUTPUT"
-          echo "nvidia=$NVIDIA" >> "$GITHUB_OUTPUT"
-          echo "nouveau=$NOUVEAU" >> "$GITHUB_OUTPUT"
 
   build_push:
     name: Build and push image
@@ -114,12 +104,6 @@ jobs:
         include:
           - variant: ""
             base_image: "ghcr.io/ublue-os/bazzite-gnome:stable"
-
-          - variant: "nvidia"
-            base_image: "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable"
-
-          - variant: "nouveau"
-            base_image: "ghcr.io/ublue-os/bazzite-gnome-nvidia:stable"
 
     permissions:
       contents: read
@@ -238,10 +222,8 @@ jobs:
 
       - name: Save new digests
         run: |
-          printf "standard=%s\nnvidia=%s\nnouveau=%s\n" \
+          printf "standard=%s\n" \
             "${{ needs.check_base_images.outputs.standard }}" \
-            "${{ needs.check_base_images.outputs.nvidia }}" \
-            "${{ needs.check_base_images.outputs.nouveau }}" \
             > .github/bazzite-digests
 
           git config user.name github-actions
