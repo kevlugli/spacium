@@ -84,7 +84,6 @@ FROM ${BASE_IMAGE} AS base
 
 COPY --from=aqueous-builder /aqueous.rpm /aqueous.rpm
 
-COPY system_files/etc/ /etc/
 COPY system_files/usr/ /usr/
 
 ### MODIFICATIONS
