@@ -31,10 +31,6 @@ RUN mkdir -p /usr/share/pkgconfig && \
       'Version: 0' \
       > /usr/share/pkgconfig/hwdata.pc
 
-RUN useradd -m builder && \
-    echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder && \
-    chmod 440 /etc/sudoers.d/builder
-
 RUN dnf -y copr enable avengemedia/dms-git && \
     dnf -y copr enable avengemedia/danklinux && \
     dnf -y copr enable lionheartp/Hyprland && \
@@ -71,10 +67,18 @@ RUN dnf -y install \
         vulkan-headers && \
     dnf clean all
 
-RUN su builder -c "git clone --depth=1 --branch '${AQUEOUS_REF}' https://github.com/Seafoam-Labs/Aqueous.git /home/builder/Aqueous"
+RUN git clone --depth=1 --branch "${AQUEOUS_REF}" https://github.com/Seafoam-Labs/Aqueous.git /src
 
-RUN su builder -c 'cd /home/builder/Aqueous && bash scripts/fedora-install.sh --build-only -y' && \
-    find /home/builder/.cache/aqueous/fedora -name '*.rpm' -exec cp -v {} /aqueous.rpm \;
+# The upstream installer refuses to run as root and shells out to sudo, which
+# needs a working PAM/sudoers setup. Run it as root and drop sudo instead.
+RUN sed -i \
+      -e '/\[\[ \$EUID -ne 0 \]\] || fedora_die/d' \
+      -e 's/sudo dnf/dnf/g' \
+      -e 's/sudo -v/true/g' \
+      /src/scripts/fedora-install.sh
+
+RUN cd /src && AQUEOUS_FEDORA_OUTPUT=/aqueous-build bash scripts/fedora-install.sh --build-only -y && \
+    find /aqueous-build -name '*.rpm' -exec cp -v {} /aqueous.rpm \;
 
 FROM ${BASE_IMAGE} AS base
 
