@@ -14,13 +14,16 @@ IMAGE_REF="ostree-image-signed:docker://ghcr.io/irunatbullets/${FULL_NAME}"
 
 # bluetui comes from the project's own COPR.
 dnf5 -y copr enable irunatbullets/spacium-extras
-# Umbriel, the Noctalia Greeter and the Umbriel portal come from the c0mpile
-# COPR. Terra's umbriel-nightly is frozen at 2026-10-03 and that build's IPC
-# rejects the whole event subscription with "unknown subscription event: outputs"
-# (an event Noctalia 5.3.0 subscribes to), so Noctalia would lose the event
-# stream and show no windows. The packages also self-conflict across sources
-# (xdg-desktop-portal-umbriel), so keep the whole family from a single COPR.
+# Umbriel and its portal (Terra's umbriel-nightly is frozen at 2026-10-03 and
+# its IPC rejects the "outputs" subscription event).
 dnf5 -y copr enable c0mpile/builds
+# DMS 2.0 (Dux Shell) and its greeter. The new Dux Labs repos are not complete
+# for Fedora 44 yet, so use the AvengeMedia channels: dms-git carries 2.0 and
+# danklinux carries quickshell, dgop, matugen and dms-greeter-git.
+dnf5 -y copr enable avengemedia/dms-git
+dnf5 -y copr enable avengemedia/danklinux
+# uwsm (required by the Aqueous session) is not packaged in Fedora 44.
+dnf5 -y copr enable lionheartp/Hyprland
 
 # Umbriel depends on xwayland-satellite, which in turn requires Fedora's
 # xorg-x11-server-Xwayland. Bazzite ships Terra's build of Xwayland, which
@@ -33,17 +36,28 @@ dnf5 -y install \
     bluetui \
     cava \
     cliphist \
+    dgop \
+    dms \
+    dms-greeter-git \
     gnome-terminal \
     greetd \
-    noctalia \
-    noctalia-greeter-git \
+    matugen \
+    quickshell \
     tmux \
     umbriel-git \
+    uwsm \
     wl-clipboard \
     xdg-desktop-portal-umbriel-git
 
+# Aqueous, built from source in the Containerfile builder stage.
+dnf5 -y install /aqueous.rpm
+rm -f /aqueous.rpm
+
 dnf5 -y copr disable irunatbullets/spacium-extras
 dnf5 -y copr disable c0mpile/builds
+dnf5 -y copr disable avengemedia/dms-git
+dnf5 -y copr disable avengemedia/danklinux
+dnf5 -y copr disable lionheartp/Hyprland
 
 systemctl enable podman.socket
 
@@ -51,42 +65,39 @@ systemctl disable gdm
 systemctl enable greetd
 
 # ==============================================================================
-# Noctalia Greeter (greetd)
+# DMS Greeter (greetd)
 # ==============================================================================
 
 # Unprivileged account greetd uses to run the greeter session.
 tee /usr/lib/sysusers.d/greeter.conf > /dev/null <<'EOF'
 g greeter 767
-u greeter 767 "Noctalia Greeter" /var/lib/noctalia-greeter /usr/sbin/nologin
+u greeter 767 "DMS greeter" /var/cache/dms-greeter /usr/sbin/nologin
 m greeter video
 m greeter input
 EOF
 
 systemd-sysusers /usr/lib/sysusers.d/greeter.conf || true
 
-mkdir -p /var/lib/noctalia-greeter
-chown -R 767:767 /var/lib/noctalia-greeter
-chmod 0750 /var/lib/noctalia-greeter
+mkdir -p /var/cache/dms-greeter
+chown -R 767:767 /var/cache/dms-greeter
+chmod 0755 /var/cache/dms-greeter
 
 # greetd needs a systemd PAM session for the greeter compositor.
 if [ -f /etc/pam.d/greetd ] && ! grep -qF pam_systemd.so /etc/pam.d/greetd; then
   printf '\nsession    required     pam_systemd.so\n' >> /etc/pam.d/greetd
 fi
 
-# Create the greeter configuration files (greeter.toml / sync.toml).
-GREETER_USER=greeter noctalia-greeter-apply-appearance --setup-system || true
-
 # ==============================================================================
 # Umbriel session defaults
 # ==============================================================================
 
-# Seed a starter Umbriel config for new users: autostart Noctalia and open
+# Seed a starter Umbriel config for new users: autostart DMS and open
 # gnome-terminal on Mod+Return. Umbriel reads ~/.config/umbriel/config.toml,
 # falling back to the packaged /usr/share/umbriel/config.toml, so patch both.
 sed -i \
     -e 's|^# \[general\]$|[general]|' \
-    -e 's|^# autostart = .*$|autostart = ["noctalia"]|' \
-    -e 's|^autostart = .*$|autostart = ["noctalia"]|' \
+    -e 's|^# autostart = .*$|autostart = ["dms run"]|' \
+    -e 's|^autostart = .*$|autostart = ["dms run"]|' \
     -e 's|"spawn:kitty"|"spawn:gnome-terminal"|' \
     /usr/share/umbriel/config.toml
 

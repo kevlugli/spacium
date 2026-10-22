@@ -12,11 +12,12 @@
 
 This custom **Bazzite** image is based on `bazzite-gnome` with variants for the Nvidia open driver as well as Nouveau.
 
-It swaps the GNOME session for **Noctalia** (desktop shell) and **Umbriel**
-(Wayland compositor), using the **Noctalia Greeter** for the login screen.
+It swaps the GNOME session for **DMS (Dux Shell)** as the desktop shell, with
+two Wayland compositors available: **Umbriel** and **Aqueous**. The login screen
+is **DMS Greeter**, running on the Aqueous compositor.
 
-My goal with this image is to offer a vanilla Noctalia/Umbriel experience with
-gaming capabilities (via Bazzite).
+My goal with this image is to offer a DMS-based desktop with gaming capabilities
+(via Bazzite).
 
 Feel free to suggest additional software - or just fork this repo and do
 whatever you like.
@@ -40,7 +41,7 @@ sudo bootc switch ghcr.io/irunatbullets/spacium-nouveau
 
 **Important Note:** After switching to this image the login will backup any
 existing Umbriel configuration (`~/.config/umbriel`) and replace it with the
-standard Spacium Umbriel config (which autostarts Noctalia). Updates will not
+standard Spacium Umbriel config (which autostarts DMS). Updates will not
 retrigger this event.
 
 ## What my selection of additional applications achieve
@@ -50,17 +51,21 @@ retrigger this event.
 
 ## Known issues and workarounds
 
-### Where does Noctalia/Umbriel come from?
+### Where does DMS/Umbriel/Aqueous come from?
 
-`noctalia` comes from the official Fedora 44 repositories. `umbriel-git`,
-`noctalia-greeter-git` and `xdg-desktop-portal-umbriel-git` come from the
-community
-[`c0mpile/builds`](https://copr.fedorainfracloud.org/coprs/c0mpile/builds/)
-COPR. The whole family has to come from a single source: the Umbriel portal
-packages conflict across repositories, and Terra's `umbriel-nightly` is frozen
-at 2026-10-03 — that build's IPC rejects the whole event subscription with
-`unknown subscription event: outputs` (an event Noctalia 5.3.0 subscribes to) —
-so Noctalia would lose the event stream and show no windows.
+- **DMS (Dux Shell) 2.0** comes from the `avengemedia/dms-git` COPR, with
+  `quickshell`, `dgop`, `matugen` and `dms-greeter-git` from
+  `avengemedia/danklinux`. The new Dux Labs repositories are not complete for
+  Fedora 44 yet, so the AvengeMedia channels are used.
+- **Umbriel** and its portal come from the community
+  [`c0mpile/builds`](https://copr.fedorainfracloud.org/coprs/c0mpile/builds/)
+  COPR. Terra's `umbriel-nightly` is frozen at 2026-10-03 and its IPC cannot
+  talk to the current DMS event stream.
+- **Aqueous** is not packaged for Fedora, so it is compiled from source in a
+  builder stage of the `Containerfile` and installed from a local RPM. The full
+  desktop components are included (Welcome, session, portal and the
+  DMS/Noctalia/Pearl integrations), so **Aqueous Welcome asks which shell to
+  use on first login — pick DMS**. `Super+Return` opens `foot` under Aqueous.
 
 ### Why does the build replace Xwayland?
 
@@ -73,30 +78,28 @@ wlroots' native Xwayland.
 
 ### Screen sharing
 
-Screen capture and sharing go through **xdg-desktop-portal-umbriel**, which is
-installed and configured automatically. If an application can't share the
-screen, make sure it is using the portal.
+Umbriel uses **xdg-desktop-portal-umbriel** and Aqueous ships its own
+`xdg-desktop-portal-aqueous`; both are installed and configured automatically.
+If an application can't share the screen, make sure it is using the portal.
 
-### The Noctalia Greeter doesn't match my Noctalia wallpaper
+### DMS Greeter
 
-The greeter can sync its appearance with your Noctalia session. See the
-[greeter sync documentation](https://docs.noctalia.dev/greeter/sync/) for the
-polkit-authorized setup steps.
+The login screen is DMS Greeter running on Aqueous. Sync its theme from a
+running DMS session with `dms-greeter sync`.
 
 ## Credits:
 
 - https://bazzite.gg/
-- https://noctalia.dev/
-- https://docs.noctalia.dev/
-- https://github.com/noctalia-dev/noctalia
+- https://duxlabs.dev/
+- https://github.com/duxlabs-dev/dux-shell
+- https://github.com/Seafoam-Labs/Aqueous
 - https://github.com/noctalia-dev/umbriel
-- https://github.com/noctalia-dev/noctalia-greeter
 - https://tsuburaya-prod.com/ (for Ultraman, the inspiration behind the name of this image)
 - https://zone108.main.jp/s/jp-005gontakana.php<br>FZゴンタかな is licensed under the [SIL Open Font License, Version 1.1](https://github.com/irunatbullets/spacium/blob/5ce3fb4974ead6809fc2b79f841c56f48572e577/assets/licenses/FZ%E3%82%B3%E3%82%99%E3%83%B3%E3%82%BF%E3%81%8B%E3%81%AA-OFL-1.1.md).
 
 ## Legal Notice
 
-This project is NOT affiliated with Bazzite, Noctalia, Umbriel or Tsuburaya.
+This project is NOT affiliated with Bazzite, Dux Labs, Seafoam Labs, Umbriel or Tsuburaya.
 
 The software is developed independently and provided as-is, without warranties of any kind. Use at your own risk.
 
