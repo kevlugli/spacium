@@ -78,9 +78,8 @@ EOF
 
 systemd-sysusers /usr/lib/sysusers.d/greeter.conf || true
 
-mkdir -p /var/cache/dms-greeter
-chown -R 767:767 /var/cache/dms-greeter
-chmod 0755 /var/cache/dms-greeter
+# /var is not deployed from the image; tmpfiles.d creates the greeter dirs at
+# boot (see system_files/usr/lib/tmpfiles.d/spacium-greetd.conf).
 
 # greetd needs a systemd PAM session for the greeter compositor.
 if [ -f /etc/pam.d/greetd ] && ! grep -qF pam_systemd.so /etc/pam.d/greetd; then
