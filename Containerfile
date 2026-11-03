@@ -43,8 +43,8 @@ RUN --mount=type=cache,dst=/var/cache \
 
 FROM ${BASE_IMAGE} AS base
 
-ARG MANDARA_VERSION=0.7.0
-ARG APPMANAGER_VERSION=3.8.0
+ARG MANDARA_VERSION=
+ARG APPMANAGER_VERSION=
 
 COPY --from=umbriel-build /out/ /
 

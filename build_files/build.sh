@@ -53,7 +53,17 @@ dnf5 -y copr disable duxlabs/dms
 dnf5 -y copr disable duxlabs/dux-repo
 
 # --- Mandara Shell (official release RPM; no COPR or Fedora package) ---
-MANDARA_VERSION="${MANDARA_VERSION:-0.7.0}"
+# An empty MANDARA_VERSION means "latest published release". It is resolved
+# from the releases/latest redirect, which avoids the unauthenticated GitHub
+# API rate limit and keeps the image from going stale.
+MANDARA_VERSION="${MANDARA_VERSION:-}"
+if [ -z "$MANDARA_VERSION" ]; then
+  MANDARA_TAG="$(curl -fsS -o /dev/null -w '%{redirect_url}' \
+    https://github.com/theHamdiz/mandara/releases/latest | sed 's#.*/tag/##')"
+  MANDARA_VERSION="${MANDARA_TAG#v}"
+fi
+test -n "$MANDARA_VERSION"
+echo "Installing mandara ${MANDARA_VERSION}"
 case "$(uname -m)" in
   x86_64) MANDARA_ARCH="x86_64" ;;
   aarch64) MANDARA_ARCH="aarch64" ;;
@@ -70,27 +80,40 @@ rm -f /tmp/mandara-SHA256SUMS "/tmp/${MANDARA_RPM}"
 # --- AppManager (official AnyLinux AppImage; no Fedora/COPR package) ---
 # The bundle already carries GTK4/libadwaita, zsync2 (delta updates) and
 # dwarfsextract (DwarFS images), so nothing else is needed at runtime.
-APPMANAGER_VERSION="${APPMANAGER_VERSION:-3.8.0}"
+# An empty APPMANAGER_VERSION means "latest published release". It is resolved
+# from the releases/latest redirect, which avoids the unauthenticated GitHub
+# API rate limit.
+APPMANAGER_VERSION="${APPMANAGER_VERSION:-}"
+if [ -z "$APPMANAGER_VERSION" ]; then
+  APPMANAGER_TAG="$(curl -fsS -o /dev/null -w '%{redirect_url}' \
+    https://github.com/kem-a/AppManager/releases/latest | sed 's#.*/tag/##')"
+  APPMANAGER_VERSION="${APPMANAGER_TAG#v}"
+fi
+test -n "$APPMANAGER_VERSION"
+echo "Installing AppManager ${APPMANAGER_VERSION}"
 case "$(uname -m)" in
-  x86_64)
-    APPMANAGER_ARCH="x86_64"
-    APPMANAGER_SHA256="599685be011e11971a3115c38f40b00ad84b123b0dd925a655d109e0ad93fac2"
-    ;;
-  aarch64)
-    APPMANAGER_ARCH="aarch64"
-    APPMANAGER_SHA256="a2a990162b45fef8f28ef7f6975d796d87ea01990e9c618e9ac27048f421474f"
-    ;;
+  x86_64) APPMANAGER_ARCH="x86_64" ;;
+  aarch64) APPMANAGER_ARCH="aarch64" ;;
   *)
     echo "unsupported architecture: $(uname -m)" >&2
     exit 1
     ;;
 esac
+APPMANAGER_ASSET="AppManager-${APPMANAGER_VERSION}-anylinux-${APPMANAGER_ARCH}.AppImage"
+APPMANAGER_URL="https://github.com/kem-a/AppManager/releases/download/v${APPMANAGER_VERSION}/${APPMANAGER_ASSET}"
 APPMANAGER_DIR="/usr/lib/app-manager"
 APPMANAGER_APPIMAGE="${APPMANAGER_DIR}/app-manager.AppImage"
 install -d -m 0755 "$APPMANAGER_DIR"
-curl -fsSL -o "$APPMANAGER_APPIMAGE" \
-    "https://github.com/kem-a/AppManager/releases/download/v${APPMANAGER_VERSION}/AppManager-${APPMANAGER_VERSION}-anylinux-${APPMANAGER_ARCH}.AppImage"
-echo "${APPMANAGER_SHA256}  ${APPMANAGER_APPIMAGE}" | sha256sum -c -
+curl -fsSL -o "$APPMANAGER_APPIMAGE" "$APPMANAGER_URL"
+
+# Upstream publishes no checksums or signature, only the zsync manifest, which
+# carries the SHA-1 of the whole file. It is the only integrity reference
+# available now that the version follows the latest release.
+curl -fsSL -o /tmp/appmanager.zsync "${APPMANAGER_URL}.zsync"
+APPMANAGER_SHA1="$(sed -n 's/^SHA-1: *//p' /tmp/appmanager.zsync | head -1)"
+test -n "$APPMANAGER_SHA1"
+echo "${APPMANAGER_SHA1}  ${APPMANAGER_APPIMAGE}" | sha1sum -c -
+rm -f /tmp/appmanager.zsync
 chmod 0755 "$APPMANAGER_APPIMAGE"
 
 # Keep the bundle out of /usr/bin; expose it through a small launcher instead.
