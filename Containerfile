@@ -4,26 +4,70 @@ ARG BASE_IMAGE=ghcr.io/ublue-os/bazzite-gnome:stable
 FROM scratch AS buildctx
 COPY build_files /ctx/
 
+# umbriel (Wayland compositor) built from source with local patches.
+# The commit is pinned because the patches were generated against it.
+FROM ${BASE_IMAGE} AS umbriel-build
+
+ARG UMBRIEL_COMMIT=a37ae93f8e190a352ae9804e366a82e33a0199d1
+
+COPY patches /tmp/patches
+
+RUN --mount=type=cache,dst=/var/cache \
+    set -eux; \
+    # Bazzite excludes Fedora's mesa (it ships its own build) and hides
+    # terra-mesa, which breaks installing mesa-libgbm-devel. This stage is
+    # throwaway, so drop the overrides to get a plain build toolchain.
+    rm -rf /etc/dnf/repos.override.d /etc/dnf/versionlock.toml; \
+    dnf5 -y install \
+        gcc-c++ git meson ninja-build pkgconf-pkg-config \
+        wlroots-devel wayland-devel wayland-protocols-devel \
+        libxkbcommon-devel libinput-devel libeis-devel \
+        pixman-devel libdrm-devel libdisplay-info-devel \
+        cairo-devel pango-devel tomlplusplus-devel json-devel \
+        libxcb-devel xcb-util-wm-devel systemd-devel \
+        libglvnd-devel mesa-libgbm-devel lcms2-devel jemalloc-devel; \
+    git init /tmp/umbriel; \
+    git -C /tmp/umbriel remote add origin https://github.com/noctalia-dev/umbriel.git; \
+    git -C /tmp/umbriel fetch --depth 1 origin "${UMBRIEL_COMMIT}"; \
+    git -C /tmp/umbriel checkout --detach FETCH_HEAD; \
+    for p in /tmp/patches/*.patch; do git -C /tmp/umbriel apply "$p"; done; \
+    meson setup /tmp/umbriel/build /tmp/umbriel \
+        --buildtype=release --strip -Dtests=disabled --prefix=/usr; \
+    meson compile -C /tmp/umbriel/build; \
+    DESTDIR=/out meson install -C /tmp/umbriel/build --no-rebuild; \
+    test -x /out/usr/bin/umbriel
+
+# AppManager ships an official distro-agnostic AppImage (AnyLinux) that already
+# bundles GTK4/libadwaita, zsync2 for delta updates and dwarfsextract for DwarFS
+# images. It is installed by build.sh into /usr/bin.
+
 FROM ${BASE_IMAGE} AS base
+
+ARG MANDARA_VERSION=0.7.0
+ARG APPMANAGER_VERSION=3.8.0
+
+COPY --from=umbriel-build /out/ /
 
 COPY system_files/etc/ /etc/
 COPY system_files/usr/ /usr/
 
-# Import upstream DMS Niri defaults into skel.
-# This intentionally fails if DMS changes its config layout.
-RUN git clone --depth=1 https://github.com/AvengeMedia/DankMaterialShell.git /tmp/dms && \
-    test -f /tmp/dms/core/internal/config/embedded/niri.kdl && \
-    install -d /etc/skel/.config/niri/dms && \
-    git -C /tmp/dms rev-parse HEAD > /etc/skel/.config/niri/.dms-config-commit && \
-    install -Dm644 \
-        /tmp/dms/core/internal/config/embedded/niri.kdl \
-        /etc/skel/.config/niri/config.kdl && \
-    for f in /tmp/dms/core/internal/config/embedded/niri-*.kdl; do \
-        name="$(basename "$f")"; \
-        name="${name#niri-}"; \
-        install -Dm644 "$f" "/etc/skel/.config/niri/dms/$name"; \
-    done && \
-    rm -rf /tmp/dms
+# Seed /etc/skel with the niri defaults that Dux Shell emulates from its repo.
+# Only the kdl files are fetched: a clone of dux-shell is ~181 MB.
+# This intentionally fails if Dux Shell changes its config layout.
+RUN set -eux; \
+    SHA=$(git ls-remote https://github.com/duxlabs-dev/dux-shell.git HEAD | cut -f1); \
+    test -n "$SHA"; \
+    RAW="https://raw.githubusercontent.com/duxlabs-dev/dux-shell/${SHA}/core/internal/config/embedded"; \
+    install -d /etc/skel/.config/niri/dms; \
+    echo "$SHA" > /etc/skel/.config/niri/.dms-config-commit; \
+    curl -fsSL "$RAW/niri.kdl" -o /etc/skel/.config/niri/config.kdl; \
+    LIST=$(curl -fsSL \
+        "https://api.github.com/repos/duxlabs-dev/dux-shell/contents/core/internal/config/embedded?ref=${SHA}" \
+        | jq -r '.[] | select(.name | test("^niri-.*\\.kdl$")) | .name'); \
+    test -n "$LIST"; \
+    for f in $LIST; do \
+        curl -fsSL "$RAW/$f" -o "/etc/skel/.config/niri/dms/${f#niri-}"; \
+    done
 
 ### MODIFICATIONS
 ## make modifications desired in your image and install packages by modifying the build.sh script
@@ -32,7 +76,7 @@ RUN --mount=type=bind,from=buildctx,source=/ctx,target=/ctx \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/build.sh
+    env MANDARA_VERSION="${MANDARA_VERSION}" APPMANAGER_VERSION="${APPMANAGER_VERSION}" /ctx/build.sh
 
 ### LINTING
 ## Verify final image and contents are correct.

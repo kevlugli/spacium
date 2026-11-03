@@ -1,0 +1,140 @@
+diff --git a/src/output/direction.cpp b/src/output/direction.cpp
+index d294b5b..c1e83a0 100644
+--- a/src/output/direction.cpp
++++ b/src/output/direction.cpp
+@@ -8,6 +8,17 @@
+ 
+ namespace umbriel {
+ 
++  namespace {
++
++    // Overlap of two half-open intervals; touching edges count as no overlap.
++    int64_t intervalOverlap(int64_t firstStart, int64_t firstSize, int64_t secondStart, int64_t secondSize) {
++      const int64_t start = std::max(firstStart, secondStart);
++      const int64_t end = std::min(firstStart + firstSize, secondStart + secondSize);
++      return end > start ? end - start : 0;
++    }
++
++  } // namespace
++
+   std::optional<size_t> adjacentOutputIndex(
+       std::span<const OutputBox> boxes, size_t reference, OutputDirection direction, double refX, double refY
+   ) {
+@@ -16,9 +27,11 @@ namespace umbriel {
+     }
+ 
+     const OutputBox& referenceBox = boxes[reference];
++    // Doubled coordinates keep the edge and center comparisons integral.
+     const int64_t referenceCenterX = static_cast<int64_t>(referenceBox.x) * 2 + referenceBox.width;
+     const int64_t referenceCenterY = static_cast<int64_t>(referenceBox.y) * 2 + referenceBox.height;
+-    double nearestDistance = std::numeric_limits<double>::infinity();
++    int64_t bestOverlap = -1;
++    double bestDistance = std::numeric_limits<double>::infinity();
+     std::optional<size_t> nearest;
+ 
+     for (size_t index = 0; index < boxes.size(); ++index) {
+@@ -26,25 +39,35 @@ namespace umbriel {
+         continue;
+       }
+       const OutputBox& candidate = boxes[index];
+-      const int64_t candidateCenterX = static_cast<int64_t>(candidate.x) * 2 + candidate.width;
+-      const int64_t candidateCenterY = static_cast<int64_t>(candidate.y) * 2 + candidate.height;
+-      const int64_t deltaX = candidateCenterX - referenceCenterX;
+-      const int64_t deltaY = candidateCenterY - referenceCenterY;
+-      const bool matches = (direction == OutputDirection::Left && deltaX < 0 && -deltaX >= std::abs(deltaY))
+-          || (direction == OutputDirection::Right && deltaX > 0 && deltaX >= std::abs(deltaY))
+-          || (direction == OutputDirection::Up && deltaY < 0 && -deltaY >= std::abs(deltaX))
+-          || (direction == OutputDirection::Down && deltaY > 0 && deltaY >= std::abs(deltaX));
++      const int64_t candidateLeft = static_cast<int64_t>(candidate.x) * 2;
++      const int64_t candidateTop = static_cast<int64_t>(candidate.y) * 2;
++      const int64_t candidateRight = candidateLeft + static_cast<int64_t>(candidate.width) * 2;
++      const int64_t candidateBottom = candidateTop + static_cast<int64_t>(candidate.height) * 2;
++      // A candidate lies in `direction` when its box reaches past the reference
++      // center on that axis. An output that is beside and below the reference at
++      // once therefore answers to both a horizontal and a vertical direction.
++      const bool matches = (direction == OutputDirection::Left && candidateRight <= referenceCenterX)
++          || (direction == OutputDirection::Right && candidateLeft >= referenceCenterX)
++          || (direction == OutputDirection::Up && candidateBottom <= referenceCenterY)
++          || (direction == OutputDirection::Down && candidateTop >= referenceCenterY);
+       if (!matches) {
+         continue;
+       }
+ 
++      // Prefer the candidate facing the reference across the perpendicular axis;
++      // proximity to `refX`/`refY` breaks ties between equal overlaps.
++      const bool horizontal = direction == OutputDirection::Left || direction == OutputDirection::Right;
++      const int64_t overlap = horizontal
++          ? intervalOverlap(referenceBox.y, referenceBox.height, candidate.y, candidate.height)
++          : intervalOverlap(referenceBox.x, referenceBox.width, candidate.x, candidate.width);
+       const double closestX =
+           std::clamp(refX, static_cast<double>(candidate.x), static_cast<double>(candidate.x + candidate.width));
+       const double closestY =
+           std::clamp(refY, static_cast<double>(candidate.y), static_cast<double>(candidate.y + candidate.height));
+       const double distance = std::hypot(closestX - refX, closestY - refY);
+-      if (distance < nearestDistance) {
+-        nearestDistance = distance;
++      if (overlap > bestOverlap || (overlap == bestOverlap && distance < bestDistance)) {
++        bestOverlap = overlap;
++        bestDistance = distance;
+         nearest = index;
+       }
+     }
+diff --git a/src/output/direction.h b/src/output/direction.h
+index 20e02e6..78fe20c 100644
+--- a/src/output/direction.h
++++ b/src/output/direction.h
+@@ -20,8 +20,10 @@ namespace umbriel {
+     Down,
+   };
+ 
+-  // Select the nearest output in `direction` from `reference`. The point is in
+-  // layout coordinates and only affects which matching output is nearest.
++  // Select the output in `direction` from `reference` whose box crosses the
++  // reference center line on that axis, preferring the one that also faces it
++  // across the perpendicular axis. `refX`/`refY` are in layout coordinates and
++  // only break ties between candidates with equal perpendicular overlap.
+   [[nodiscard]] std::optional<size_t> adjacentOutputIndex(
+       std::span<const OutputBox> boxes, size_t reference, OutputDirection direction, double refX, double refY
+   );
+diff --git a/tests/unit/output_direction.cpp b/tests/unit/output_direction.cpp
+index 45d29ed..5a18c1b 100644
+--- a/tests/unit/output_direction.cpp
++++ b/tests/unit/output_direction.cpp
+@@ -43,6 +43,37 @@ UMBRIEL_TEST(nearestDirectionalOutputWins) {
+   CHECK_EQ(adjacentOutputIndex(boxes, 0, OutputDirection::Right, 500, 400), std::optional<size_t>{1});
+ }
+ 
++UMBRIEL_TEST(twoTopOutputsWithOneCenteredBelow) {
++  // Two outputs side by side on top, a third centered below both. The below
++  // output overlaps the top-right one on both axes, so it is adjacent to it
++  // vertically and horizontally at once.
++  constexpr std::array boxes{
++      OutputBox{0, 72, 1920, 1080},
++      OutputBox{1920, 0, 2048, 1152},
++      OutputBox{1111, 1152, 1536, 864},
++  };
++
++  // Top-left, cursor at its center.
++  CHECK_EQ(adjacentOutputIndex(boxes, 0, OutputDirection::Left, 960, 612), std::optional<size_t>{});
++  CHECK_EQ(adjacentOutputIndex(boxes, 0, OutputDirection::Right, 960, 612), std::optional<size_t>{1});
++  CHECK_EQ(adjacentOutputIndex(boxes, 0, OutputDirection::Up, 960, 612), std::optional<size_t>{});
++  CHECK_EQ(adjacentOutputIndex(boxes, 0, OutputDirection::Down, 960, 612), std::optional<size_t>{2});
++
++  // Top-right: Left reaches the top-left output, not the bottom one, and Down
++  // reaches the bottom output.
++  CHECK_EQ(adjacentOutputIndex(boxes, 1, OutputDirection::Left, 2944, 576), std::optional<size_t>{0});
++  CHECK_EQ(adjacentOutputIndex(boxes, 1, OutputDirection::Right, 2944, 576), std::optional<size_t>{});
++  CHECK_EQ(adjacentOutputIndex(boxes, 1, OutputDirection::Up, 2944, 576), std::optional<size_t>{});
++  CHECK_EQ(adjacentOutputIndex(boxes, 1, OutputDirection::Down, 2944, 576), std::optional<size_t>{2});
++
++  // The bottom output reaches the top-right one horizontally and the more
++  // centered top-left one vertically.
++  CHECK_EQ(adjacentOutputIndex(boxes, 2, OutputDirection::Left, 1879, 1584), std::optional<size_t>{});
++  CHECK_EQ(adjacentOutputIndex(boxes, 2, OutputDirection::Right, 1879, 1584), std::optional<size_t>{1});
++  CHECK_EQ(adjacentOutputIndex(boxes, 2, OutputDirection::Up, 1879, 1584), std::optional<size_t>{0});
++  CHECK_EQ(adjacentOutputIndex(boxes, 2, OutputDirection::Down, 1879, 1584), std::optional<size_t>{});
++}
++
+ UMBRIEL_TEST(outputCyclingFollowsLayoutOrderAndWraps) {
+   // Declared out of layout order, so a cycle that followed the input order
+   // would visit the middle monitor first.

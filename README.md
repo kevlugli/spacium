@@ -47,8 +47,20 @@ Updates will not retrigger this event.
 
 - **ghostty** - nothing, I just switched to it when I started using dms.
 - **bluetui** - an application for configuring multiple Bluetooth receivers.
+- **umbriel** - an alternative Wayland compositor, built from source with local patches.
+- **mandara** - a Wayland shell written in Rust.
+- **appmanager** - a GTK4 app for installing and updating AppImages.
 
 ## Known issues and workarounds
+
+### How do I install VS Code?
+
+The official Microsoft repository is already configured. After booting:
+
+```
+sudo rpm-ostree install code
+sudo systemctl reboot
+```
 
 ### How do I change the dms greeter's background?!
 
