@@ -30,6 +30,7 @@ dnf5 -y install --enablerepo=terra \
     dux-search \
     greetd \
     ghostty \
+    gnome-keyring-pam \
     jemalloc \
     lcms2 \
     libdisplay-info \
@@ -85,6 +86,10 @@ install -d /usr/lib/mandara \
     /usr/share/mandara/login/videos \
     /usr/share/mandara/login/backgrounds
 ln -sfn /usr/bin/mandara /usr/lib/mandara/mandara-greeter
+
+# Unlock GNOME Keyring with the password typed at the login screen, through
+# greetd's PAM service. Idempotent: it only writes when the lines are missing.
+mandara greeter keyring-unlock --apply
 
 # --- AppManager (official AnyLinux AppImage; no Fedora/COPR package) ---
 # The bundle already carries GTK4/libadwaita, zsync2 (delta updates) and
