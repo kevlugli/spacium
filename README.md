@@ -62,16 +62,22 @@ sudo rpm-ostree install code
 sudo systemctl reboot
 ```
 
-### How do I change the dms greeter's background?!
+### How do I change the login screen?
 
-To enable background image syncing with the dms greeter, run the
-following from your terminal and follow the steps:
+The login screen is **Mandara Login**, started by greetd through `cage`:
 
 ```
-dms greeter sync
+mandara greeter --demo          # preview it without logging out
+mandara studio "login screen"   # edit the design and apply it
 ```
-I would like to automate this in future but I'm simply not smart or patient
-enough to do it at the moment.
+
+The old `dms greeter sync` workaround no longer applies: the dms greeter is
+still installed but it is not the login screen anymore. To use it again, put
+its command back in `/etc/greetd/config.toml`:
+
+```
+command = "/usr/bin/dms-greeter --command niri --cache-dir /var/cache/dms-greeter"
+```
 
 ### Matugen isn't themeing my flatpak apps!
 

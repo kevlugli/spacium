@@ -20,6 +20,7 @@ dnf5 -y install --enablerepo=terra \
     acl \
     bluetui \
     breakpad \
+    cage \
     cliphist \
     cava \
     dms \
@@ -76,6 +77,14 @@ curl -fsSL -o "/tmp/${MANDARA_RPM}" "${MANDARA_BASE}/${MANDARA_RPM}"
 (cd /tmp && grep " ${MANDARA_RPM}$" mandara-SHA256SUMS | sha256sum -c -)
 dnf5 -y install --nogpgcheck "/tmp/${MANDARA_RPM}"
 rm -f /tmp/mandara-SHA256SUMS "/tmp/${MANDARA_RPM}"
+
+# --- Mandara Login (greetd greeter, started through cage by /etc/greetd/config.toml) ---
+# Symlink instead of copying the 173 MB binary; the greeter user still runs it
+# under its expected name. The state directory comes from tmpfiles.d.
+install -d /usr/lib/mandara \
+    /usr/share/mandara/login/videos \
+    /usr/share/mandara/login/backgrounds
+ln -sfn /usr/bin/mandara /usr/lib/mandara/mandara-greeter
 
 # --- AppManager (official AnyLinux AppImage; no Fedora/COPR package) ---
 # The bundle already carries GTK4/libadwaita, zsync2 (delta updates) and
