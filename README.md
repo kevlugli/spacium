@@ -16,8 +16,7 @@ It ships **Umbriel** as the Wayland compositor and **Mandara** as the desktop
 shell, with **Mandara Login** as the login screen on top of greetd.
 
 My goal with this image is to offer a minimal Umbriel + Mandara experience with
-gaming capabilities (via Bazzite). I have added **ghostty** as the default
-terminal.
+gaming capabilities (via Bazzite).
 
 Feel free to suggest additional software - or just fork this repo and do
 whatever you like.
@@ -45,7 +44,6 @@ picked at the login screen.
 
 ## What my selection of additional applications achieve
 
-- **ghostty** - nothing, I just switched to it a while ago.
 - **bluetui** - an application for configuring multiple Bluetooth receivers.
 - **umbriel** - the Wayland compositor, built from source with local patches.
 - **mandara** - the desktop shell (bar, launcher, lock screen, settings).

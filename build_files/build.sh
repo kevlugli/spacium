@@ -18,7 +18,6 @@ dnf5 -y install --enablerepo=terra \
     acl \
     bluetui \
     cage \
-    ghostty \
     gnome-keyring-pam \
     greetd \
     jemalloc \
