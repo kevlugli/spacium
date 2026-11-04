@@ -53,15 +53,6 @@ picked at the login screen.
 
 ## Known issues and workarounds
 
-### How do I install VS Code?
-
-The official Microsoft repository is already configured. After booting:
-
-```
-sudo rpm-ostree install code
-sudo systemctl reboot
-```
-
 ### How do I change the login screen?
 
 The login screen is **Mandara Login**, started by greetd through `cage`:

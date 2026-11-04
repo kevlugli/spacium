@@ -127,12 +127,6 @@ rm -rf /tmp/squashfs-root
 gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor || true
 update-desktop-database -q /usr/share/applications || true
 
-# --- VS Code repository: Microsoft GPG key (the .repo comes from system_files) ---
-mkdir -p /etc/pki/rpm-gpg
-curl -fsSL -o /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft https://packages.microsoft.com/keys/microsoft.asc
-chmod 0644 /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft
-rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft
-
 systemctl enable podman.socket
 
 systemctl disable gdm
