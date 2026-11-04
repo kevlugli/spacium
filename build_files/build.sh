@@ -12,11 +12,8 @@ fi
 
 IMAGE_REF="ostree-image-signed:docker://ghcr.io/irunatbullets/${FULL_NAME}"
 
-dnf5 -y copr enable irunatbullets/spacium-extras
-
 dnf5 -y install --enablerepo=terra \
     acl \
-    bluetui \
     cage \
     gnome-keyring-pam \
     greetd \
@@ -30,8 +27,6 @@ dnf5 -y install --enablerepo=terra \
     wl-mirror \
     wlroots \
     xcb-util-wm
-
-dnf5 -y copr disable irunatbullets/spacium-extras
 
 # --- Mandara Shell (official release RPM; no COPR or Fedora package) ---
 # An empty MANDARA_VERSION means "latest published release". It is resolved
