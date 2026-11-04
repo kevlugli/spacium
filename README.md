@@ -50,6 +50,7 @@ picked at the login screen.
 - **umbriel** - the Wayland compositor, built from source with local patches.
 - **mandara** - the desktop shell (bar, launcher, lock screen, settings).
 - **appmanager** - a GTK4 app for installing and updating AppImages.
+- **wl-mirror** - mirrors a Wayland output, e.g. into a window or a stream.
 
 ## Known issues and workarounds
 

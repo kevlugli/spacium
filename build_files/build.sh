@@ -28,6 +28,7 @@ dnf5 -y install --enablerepo=terra \
     tmux \
     tomlplusplus \
     wl-clipboard \
+    wl-mirror \
     wlroots \
     xcb-util-wm
 
