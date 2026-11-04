@@ -1,7 +1,0 @@
-[Unit]
-Description=Various vanilla configurations for Spacium
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/libexec/spacium
-

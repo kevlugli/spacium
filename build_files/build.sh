@@ -13,46 +13,25 @@ fi
 IMAGE_REF="ostree-image-signed:docker://ghcr.io/irunatbullets/${FULL_NAME}"
 
 dnf5 -y copr enable irunatbullets/spacium-extras
-dnf5 -y copr enable duxlabs/dms
-dnf5 -y copr enable duxlabs/dux-repo
 
 dnf5 -y install --enablerepo=terra \
     acl \
     bluetui \
-    breakpad \
     cage \
-    cliphist \
-    cava \
-    dms \
-    dux-calendar-git \
-    dux-gop \
-    dux-greeter \
-    dux-search \
-    greetd \
     ghostty \
     gnome-keyring-pam \
+    greetd \
     jemalloc \
     lcms2 \
     libdisplay-info \
     libeis \
-    material-symbols-fonts \
-    matugen \
-    niri \
-    qt6-qt5compat \
-    qt6-qtimageformats \
-    qt6-qtmultimedia \
-    qt6-qtsvg \
-    quickshell-git \
     tmux \
     tomlplusplus \
     wl-clipboard \
     wlroots \
-    xcb-util-wm \
-    xwayland-satellite
+    xcb-util-wm
 
 dnf5 -y copr disable irunatbullets/spacium-extras
-dnf5 -y copr disable duxlabs/dms
-dnf5 -y copr disable duxlabs/dux-repo
 
 # --- Mandara Shell (official release RPM; no COPR or Fedora package) ---
 # An empty MANDARA_VERSION means "latest published release". It is resolved
@@ -156,23 +135,11 @@ rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-microsoft
 
 systemctl enable podman.socket
 
-systemctl --global enable dms
-
 systemctl disable gdm
 systemctl enable greetd
 
-# The `greeter` user and its directories come from dux-greeter's sysusers.d and
-# tmpfiles.d entries (uid 955). Creating them here with a fixed uid left
-# /var/lib/greeter owned by a non-existent user, so the greeter could not write
-# its home.
-
-mkdir -p /usr/lib/systemd/user/graphical-session.target.wants
-
-ln -s /usr/lib/systemd/user/spacium.service \
-    /usr/lib/systemd/user/graphical-session.target.wants/spacium.service
-
-ln -s /usr/lib/systemd/user/dsearch.service \
-    /usr/lib/systemd/user/graphical-session.target.wants/dsearch.service
+# The greetd `greeter` user and its directories are declared under system_files/
+# (sysusers.d and tmpfiles.d), so this image no longer depends on dux-greeter.
 
 jq \
   --arg name "$FULL_NAME" \

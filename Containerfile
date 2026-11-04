@@ -51,24 +51,6 @@ COPY --from=umbriel-build /out/ /
 COPY system_files/etc/ /etc/
 COPY system_files/usr/ /usr/
 
-# Seed /etc/skel with the niri defaults that Dux Shell emulates from its repo.
-# Only the kdl files are fetched: a clone of dux-shell is ~181 MB.
-# This intentionally fails if Dux Shell changes its config layout.
-RUN set -eux; \
-    SHA=$(git ls-remote https://github.com/duxlabs-dev/dux-shell.git HEAD | cut -f1); \
-    test -n "$SHA"; \
-    RAW="https://raw.githubusercontent.com/duxlabs-dev/dux-shell/${SHA}/core/internal/config/embedded"; \
-    install -d /etc/skel/.config/niri/dms; \
-    echo "$SHA" > /etc/skel/.config/niri/.dms-config-commit; \
-    curl -fsSL "$RAW/niri.kdl" -o /etc/skel/.config/niri/config.kdl; \
-    LIST=$(curl -fsSL \
-        "https://api.github.com/repos/duxlabs-dev/dux-shell/contents/core/internal/config/embedded?ref=${SHA}" \
-        | jq -r '.[] | select(.name | test("^niri-.*\\.kdl$")) | .name'); \
-    test -n "$LIST"; \
-    for f in $LIST; do \
-        curl -fsSL "$RAW/$f" -o "/etc/skel/.config/niri/dms/${f#niri-}"; \
-    done
-
 ### MODIFICATIONS
 ## make modifications desired in your image and install packages by modifying the build.sh script
 ## the following RUN directive does all the things required to run "build.sh" as recommended.
