@@ -65,16 +65,23 @@ mandara studio "login screen"   # edit the design and apply it
 Mandara Login is the only greeter installed. If it ever fails to start, switch
 to a text console with `Ctrl+Alt+F2` and check `journalctl -u greetd`.
 
-### How do I start Mandara with Umbriel?
+### How is Mandara started?
 
-Both are installed, but Mandara has to be wired into the session once:
+Automatically. On the first login, `spacium-setup.service` runs before the
+compositor and creates `~/.config/umbriel/config.toml` with the include line
+that loads Mandara's drop-in, then generates the drop-in itself
+(`~/.config/mandara/generated/umbriel.toml`). Its `[general] autostart` entry
+launches Mandara with the session.
+
+If you already have an Umbriel config it is left untouched. To wire it up by
+hand:
 
 ```
-mandara install --compositor umbriel
+mandara setup --compositor umbriel --autostart
 ```
 
-That adds the Umbriel include for Mandara's generated config and sets up its
-autostart. `mandara setup --autostart` refreshes the entry afterwards.
+and add the `[include.optional]` snippet it prints to your
+`~/.config/umbriel/config.toml`.
 
 ## Credits:
 

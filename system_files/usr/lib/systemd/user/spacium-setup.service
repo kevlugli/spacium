@@ -1,0 +1,11 @@
+[Unit]
+Description=Set up Mandara for Umbriel on first login
+Documentation=https://github.com/theHamdiz/mandara
+Before=umbriel.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/spacium-setup
+
+[Install]
+WantedBy=graphical-session-pre.target

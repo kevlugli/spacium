@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Runs once per user, before the compositor starts (graphical-session-pre.target).
+# The image ships no Umbriel config, so the first login creates one that loads
+# Mandara's generated drop-in. An existing config is never touched: Mandara only
+# suggests the line for those, since merging TOML for the user is not our call.
+UMBRIEL_CONFIG="$HOME/.config/umbriel/config.toml"
+[[ -f "$UMBRIEL_CONFIG" ]] && exit 0
+
+# Writes ~/.config/mandara/config.toml and ~/.config/mandara/generated/umbriel.toml,
+# whose [general] autostart entry launches Mandara with the session.
+mandara setup --compositor umbriel --autostart
+
+mkdir -p "$(dirname "$UMBRIEL_CONFIG")"
+cat > "$UMBRIEL_CONFIG" <<EOF
+# Written by Spacium on first login. Loads Mandara's generated drop-in; a value
+# set in this file wins over the generated one.
+[include.optional]
+files = ["$HOME/.config/mandara/generated/umbriel.toml"]
+EOF

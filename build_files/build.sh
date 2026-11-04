@@ -132,6 +132,12 @@ systemctl enable podman.socket
 systemctl disable gdm
 systemctl enable greetd
 
+# Runs before the compositor, once per user: creates the Umbriel config that
+# loads Mandara's generated drop-in.
+mkdir -p /usr/lib/systemd/user/graphical-session-pre.target.wants
+ln -sfn /usr/lib/systemd/user/spacium-setup.service \
+    /usr/lib/systemd/user/graphical-session-pre.target.wants/spacium-setup.service
+
 # The greetd `greeter` user and its directories are declared under system_files/
 # (sysusers.d and tmpfiles.d), so this image no longer depends on dux-greeter.
 
