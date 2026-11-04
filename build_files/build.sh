@@ -161,15 +161,10 @@ systemctl --global enable dms
 systemctl disable gdm
 systemctl enable greetd
 
-mkdir -p /var/cache/dms-greeter
-
-tee /usr/lib/sysusers.d/greeter.conf > /dev/null <<'EOF'
-g greeter 767
-u greeter 767 "greetd greeter" /var/lib/greeter
-EOF
-
-mkdir -p /var/lib/greeter
-chown 767:767 /var/lib/greeter
+# The `greeter` user and its directories come from dux-greeter's sysusers.d and
+# tmpfiles.d entries (uid 955). Creating them here with a fixed uid left
+# /var/lib/greeter owned by a non-existent user, so the greeter could not write
+# its home.
 
 mkdir -p /usr/lib/systemd/user/graphical-session.target.wants
 
