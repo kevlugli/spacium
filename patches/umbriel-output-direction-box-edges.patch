@@ -80,7 +80,7 @@ index d294b5b..c1e83a0 100644
        }
      }
 diff --git a/src/output/direction.h b/src/output/direction.h
-index 20e02e6..78fe20c 100644
+index b44c2db..ea5ca7a 100644
 --- a/src/output/direction.h
 +++ b/src/output/direction.h
 @@ -20,8 +20,10 @@ namespace umbriel {
@@ -93,7 +93,7 @@ index 20e02e6..78fe20c 100644
 +  // reference center line on that axis, preferring the one that also faces it
 +  // across the perpendicular axis. `refX`/`refY` are in layout coordinates and
 +  // only break ties between candidates with equal perpendicular overlap.
-   [[nodiscard]] std::optional<size_t> adjacentOutputIndex(
+   std::optional<size_t> adjacentOutputIndex(
        std::span<const OutputBox> boxes, size_t reference, OutputDirection direction, double refX, double refY
    );
 diff --git a/tests/unit/output_direction.cpp b/tests/unit/output_direction.cpp

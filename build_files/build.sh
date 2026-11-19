@@ -12,6 +12,9 @@ fi
 
 IMAGE_REF="ostree-image-signed:docker://ghcr.io/irunatbullets/${FULL_NAME}"
 
+# xdg-desktop-portal-umbriel (portal backend for screen sharing and screenshots
+# under Umbriel) only exists in Terra as a nightly snapshot; there is no stable
+# release package.
 dnf5 -y install --enablerepo=terra \
     acl \
     cage \
@@ -26,7 +29,8 @@ dnf5 -y install --enablerepo=terra \
     wl-clipboard \
     wl-mirror \
     wlroots \
-    xcb-util-wm
+    xcb-util-wm \
+    xdg-desktop-portal-umbriel-nightly
 
 # --- Mandara Shell (official release RPM; no COPR or Fedora package) ---
 # An empty MANDARA_VERSION means "latest published release". It is resolved

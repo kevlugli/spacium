@@ -8,7 +8,7 @@ COPY build_files /ctx/
 # The commit is pinned because the patches were generated against it.
 FROM ${BASE_IMAGE} AS umbriel-build
 
-ARG UMBRIEL_COMMIT=a37ae93f8e190a352ae9804e366a82e33a0199d1
+ARG UMBRIEL_COMMIT=13332d406563a1bd9b58026c0483a6dc47244daf
 
 COPY patches /tmp/patches
 

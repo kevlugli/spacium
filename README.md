@@ -48,6 +48,7 @@ picked at the login screen.
 - **mandara** - the desktop shell (bar, launcher, lock screen, settings).
 - **appmanager** - a GTK4 app for installing and updating AppImages.
 - **wl-mirror** - mirrors a Wayland output, e.g. into a window or a stream.
+- **xdg-desktop-portal-umbriel** - the portal backend for screen sharing and screenshots under Umbriel (Terra nightly).
 
 ## Known issues and workarounds
 

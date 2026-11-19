@@ -1,8 +1,8 @@
 diff --git a/src/server/server.cpp b/src/server/server.cpp
-index 45c01f9..e0156fc 100644
+index 47fe6dc..23a2b17 100644
 --- a/src/server/server.cpp
 +++ b/src/server/server.cpp
-@@ -651,7 +651,7 @@ namespace umbriel {
+@@ -747,7 +747,7 @@ namespace umbriel {
      m_cursorEffectSlot.configuredSelector = config().effects.cursor;
      resolveEffectSlot(m_cursorEffectSlot, EffectKind::Cursor);
      effectRegistry().prepare(m_renderer);
